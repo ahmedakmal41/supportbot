@@ -9,13 +9,27 @@ st.set_page_config(page_title="Dave - AI Assistant", page_icon="🤖", layout="c
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Azure OpenAI configuration
-endpoint = os.getenv("ENDPOINT_URL", "https://adragvoicebot.openai.azure.com/")
-deployment = os.getenv("DEPLOYMENT_NAME", "gpt-4o-mini")
-search_endpoint = os.getenv("SEARCH_ENDPOINT", "https://adragvoicebotsearch.search.windows.net")
-search_key = os.getenv("SEARCH_KEY", "l1RpDShemfaCrLssIT2a1YCwHAehUm1twBRiCsaIrbAzSeDWeyuW")
-search_index = os.getenv("SEARCH_INDEX_NAME", "test")
-subscription_key = os.getenv("AZURE_OPENAI_API_KEY", "FvRSjc171gXS42gKhpeOW5hezOYyn7JbmtqUPipI1zyFGvaXLP6kJQQJ99BCACHYHv6XJ3w3AAABACOGwKI4")
+# Azure OpenAI configuration from environment variables
+endpoint = os.getenv("ENDPOINT_URL")
+deployment = os.getenv("DEPLOYMENT_NAME")
+search_endpoint = os.getenv("SEARCH_ENDPOINT")
+search_key = os.getenv("SEARCH_KEY")
+search_index = os.getenv("SEARCH_INDEX_NAME")
+subscription_key = os.getenv("AZURE_OPENAI_API_KEY")
+
+# Validate environment variables
+required_env_vars = {
+    "ENDPOINT_URL": endpoint,
+    "DEPLOYMENT_NAME": deployment,
+    "SEARCH_ENDPOINT": search_endpoint,
+    "SEARCH_KEY": search_key,
+    "SEARCH_INDEX_NAME": search_index,
+    "AZURE_OPENAI_API_KEY": subscription_key
+}
+missing_vars = [key for key, value in required_env_vars.items() if not value]
+if missing_vars:
+    st.error(f"Missing required environment variables: {', '.join(missing_vars)}. Please set them in .streamlit/secrets.toml or the deployment platform's secrets management.")
+    st.stop()
 
 # Initialize Azure OpenAI client
 client = AzureOpenAI(
@@ -50,7 +64,7 @@ def get_response(user_input):
                     "type": "azure_search",
                     "parameters": {
                         "endpoint": search_endpoint,
-                        "index_name": "test",
+                        "index_name": search_index,
                         "semantic_configuration": "default",
                         "query_type": "vector_semantic_hybrid",
                         "fields_mapping": {},
